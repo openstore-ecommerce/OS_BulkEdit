@@ -110,7 +110,6 @@
     <Content Include="Themes\config\js\OS_BulkEdit.js" />
     <None Include="app.config" />
     <None Include="packages.config" />
-    <None Include="Themes\config\default\datafields.cshtml" />
     <None Include="Themes\config\default\datalist.cshtml" />
   </ItemGroup>
   <ItemGroup />

@@ -38,7 +38,7 @@ namespace OpenStore.Providers.OS_BulkEdit
             var strOut = "OS_BulkEdit Ajax Error";
 
             // NOTE: The paramCmd MUST start with the plugin ref. in lowercase. (links ajax provider to cmd)
-            switch (paramCmd)
+            switch (paramCmd.ToLower())
             {
                 case "os_bulkedit_test":
                     strOut = "<root>" + UserController.Instance.GetCurrentUserInfo().Username + "</root>";
@@ -49,11 +49,19 @@ namespace OpenStore.Providers.OS_BulkEdit
                 case "os_bulkedit_deleterecord":
                     strOut = DeleteData(context);
                     break;
-                case "os_bulkedit_savedata":
-                    strOut = SaveData(context);
+                case "os_bulkedit_saveitem":
+                    DataSave(context);
                     break;
                 case "os_bulkedit_selectlang":
-                    strOut = SaveData(context);
+                    //strOut = SaveData(context);
+                    break;
+                case "os_bulkedit_selectchangedisable":
+                    if (!NBrightBuyUtils.CheckRights()) break;
+                    strOut = ProductFunctions.ProductDisable(context);
+                    break;
+                case "os_bulkedit_selectchangehidden":
+                    if (!NBrightBuyUtils.CheckRights()) break;
+                    strOut = ProductFunctions.ProductHidden(context);
                     break;
             }
 
@@ -67,26 +75,13 @@ namespace OpenStore.Providers.OS_BulkEdit
 
         #region "Methods"
 
-        private String SaveData(HttpContext context)
-        {
-            var objCtrl = new NBrightBuyController();
-
-            //get uploaded params
-            var ajaxInfo = NBrightBuyUtils.GetAjaxFields(context);
-
-            var editlang = ajaxInfo.GetXmlProperty("genxml/hidden/editlang");
-            if (editlang == "") editlang = Utils.GetCurrentCulture();
-
-            return "";
-        }
-
         private String DeleteData(HttpContext context)
         {
             var objCtrl = new NBrightBuyController();
 
             //get uploaded params
             var ajaxInfo = NBrightBuyUtils.GetAjaxFields(context);
-            var itemid = ajaxInfo.GetXmlProperty("genxml/hidden/itemid");
+            var itemid = ajaxInfo.GetXmlProperty("genxml/hidden/selecteditemid");
             if (Utils.IsNumeric(itemid))
             {
                 // delete DB record
@@ -94,7 +89,7 @@ namespace OpenStore.Providers.OS_BulkEdit
 
                 NBrightBuyUtils.RemoveModCache(-2);
             }
-            return "";
+            return ProductAdminList(context);
         }
 
         #endregion
@@ -251,6 +246,58 @@ namespace OpenStore.Providers.OS_BulkEdit
             }
 
         }
+
+        public void DataSave(HttpContext context)
+        {
+            if (NBrightBuyUtils.CheckRights())
+            {
+                var ajaxInfo = NBrightBuyUtils.GetAjaxFields(context);
+                var editlang = ajaxInfo.GetXmlProperty("genxml/hidden/editlang");
+                if (editlang == "") editlang = Utils.GetCurrentCulture();
+
+                var modelXml = Utils.UnCode(ajaxInfo.GetXmlProperty("genxml/hidden/xmlupdatemodeldata"));
+                var nbi = new NBrightInfo();
+                nbi.XMLData = modelXml;
+                var nodList = nbi.XMLDoc.SelectNodes("root/models");
+                foreach (XmlNode xNod in nodList)
+                {
+                    var itemNod = xNod.SelectSingleNode("./@productid");
+                    var itemid = 0;
+                    if (itemNod != null && Utils.IsNumeric(itemNod.Value))
+                    {
+                        itemid = Convert.ToInt32(itemNod.Value);
+                    }
+                    if (itemid > 0)
+                    {
+                        var updateList = NBrightBuyUtils.GetGenXmlListByAjax(xNod.InnerXml, "", editlang);
+                        var prdData = new ProductData(Convert.ToInt32(itemid), editlang, true, "PRD");
+                        if (prdData.Exists)
+                        {
+                            //update models.
+                            var lp = 1;
+                            foreach (var upd in updateList)
+                            {
+                                prdData.DataLangRecord.SetXmlProperty("genxml/models/genxml[" + lp + "]/textbox/txtmodelname", upd.GetXmlProperty("genxml/textbox/txtmodelname"));
+                                prdData.DataRecord.SetXmlProperty("genxml/models/genxml[" + lp + "]/textbox/txtmodelref", upd.GetXmlProperty("genxml/textbox/txtmodelref"));
+                                prdData.DataRecord.SetXmlProperty("genxml/models/genxml[" + lp + "]/textbox/txtunitcost", upd.GetXmlPropertyDouble("genxml/textbox/txtunitcost").ToString(), System.TypeCode.Double);
+                                prdData.DataRecord.SetXmlProperty("genxml/models/genxml[" + lp + "]/dropdownlist/taxrate", upd.GetXmlProperty("genxml/dropdownlist/taxrate"));
+                                prdData.DataRecord.SetXmlProperty("genxml/models/genxml[" + lp + "]/textbox/weight", upd.GetXmlPropertyDouble("genxml/textbox/weight").ToString(), System.TypeCode.Double);
+                                prdData.DataRecord.SetXmlProperty("genxml/models/genxml[" + lp + "]/textbox/txtqtyremaining", upd.GetXmlPropertyDouble("genxml/textbox/txtqtyremaining").ToString(), System.TypeCode.Double);
+                                lp += 1;
+                            }
+                            prdData.Save(false, false);
+                            // remove save GetData cache
+                            var strCacheKey = prdData.Info.ItemID.ToString("") + "*" + prdData.DataRecord.TypeCode + "LANG*" + "*" + editlang;
+                            Utils.RemoveCache(strCacheKey);
+                        }
+                    }
+                }
+
+                DataCache.ClearCache();
+            }
+
+        }
+
 
 
     }

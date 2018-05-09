@@ -1,8 +1,8 @@
 ﻿
 $(document).ready(function () {
 
-    // get list of records via ajax:  NBrightRazorTemplate_nbxget({command}, {div of data passed to server}, {return html to this div} )
     nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');
+    $('.processing').hide(); 
 
     $('.actionbuttonwrapper #cmdsave').unbind('click');
     $('.actionbuttonwrapper #cmdsave').click(function () {
@@ -32,13 +32,56 @@ function nbxgetCompleted(e) {
         nbxget('os_bulkedit_getdata', '#selectparams', '#editdata'); // do ajax call to get edit form
     }
 
+    if (e.cmd == 'os_bulkedit_selectchangedisable' || e.cmd == 'os_bulkedit_selectchangehidden') {
+        $('.processing').hide();
+    };
+
+    if (e.cmd == 'os_bulkedit_deleterecord' || e.cmd == 'os_bulkedit_saveitem') {
+        nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');
+    };    
+
     if (e.cmd == 'os_bulkedit_getdata') {
         $('.processing').hide();
+        $('.selecteditlanguage').show();
 
         $("#ddllistsearchcategory").unbind("change");
         $("#ddllistsearchcategory").change(function () {
             $('#searchcategory').val($("#ddllistsearchcategory").val());
             nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');
+        });
+
+        $("#chkcascaderesults").unbind("change");
+        $("#chkcascaderesults").change(function () {
+            if ($("#chkcascaderesults").is(':checked')) {
+                $('#cascade').val("True");
+            } else {
+                $('#cascade').val("False");
+            }
+            nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');
+        });
+
+        $('.selectchangedisable').unbind("click");
+        $('.selectchangedisable').click(function () {
+            $('.processing').show();
+            $('#selecteditemid').val($(this).attr('itemid'));
+            if ($(this).hasClass("fa-check-circle")) {
+                $(this).addClass('fa-circle').removeClass('fa-check-circle');
+            } else {
+                $(this).addClass('fa-check-circle').removeClass('fa-circle');
+            }
+            nbxget('os_bulkedit_selectchangedisable', '#selectparams');
+        });
+
+        $('.selectchangehidden').unbind("click");
+        $('.selectchangehidden').click(function () {
+            $('.processing').show();
+            $('#selecteditemid').val($(this).attr('itemid'));
+            if ($(this).hasClass("fa-check-circle")) {
+                $(this).addClass('fa-circle').removeClass('fa-check-circle');
+            } else {
+                $(this).addClass('fa-check-circle').removeClass('fa-circle');
+            }
+            nbxget('os_bulkedit_selectchangehidden', '#selectparams');
         });
 
 
@@ -68,18 +111,50 @@ function nbxgetCompleted(e) {
             nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');
         });
 
+        $('.productAdmin_cmdDelete').unbind("click");
+        $('.productAdmin_cmdDelete').click(function () {
+            if (confirm($('#confirmdeletemsg').text())) {
+                $('.actionbuttonwrapper').hide();
+                $('.editlanguage').hide();
+                $('.processing').show();
+                $('#selecteditemid').val($(this).attr('itemid'));
+                nbxget('os_bulkedit_deleterecord', '#selectparams', '#editdata');
+            }
+        });
+
+        $('#cmdsave').unbind("click");
+        $('#cmdsave').click(function () {
+            $('.processing').show();
+            $('#selecteditemid').val($(this).attr('itemid'));
+            $('.productAdmin_cmdSaveItem').hide();
+
+            //build XML for all records.
+            var xdat = '<root>';
+            $('.modelrow').each(function (i, obj) {
+                if ($('#isdirty_' + $(this).attr('itemid')).val() == '1') {
+                    xdat += "<models productid='" + $(this).attr('itemid') + "'>";
+                    xdat += $.fn.genxmlajaxitems($(this), '.modelitem');
+                    xdat += "</models>";
+                }
+            });
+            xdat += "</root>";
+
+            //move data to update postback field
+            $('#xmlupdatemodeldata').val(xdat);
+
+            $('#cmdsave').hide();
+            nbxget('os_bulkedit_saveitem', '#selectparams');
+        });        
+
+
+        $('.modelfield').unbind("keyup");
+        $('.modelfield').keyup(function () {
+            $('#cmdsave').show();
+            $('.selecteditlanguage').hide();
+            $('#isdirty_' + $(this).attr('itemid')).val('1');            
+        });
 
     }
-
-    // check if we are displaying a list or the detail and do processing.
-        //PROCESS LIST
-        OS_BulkEdit_ListButtons();
-        $(".catdisplay").prop("disabled", true);
-        $(".propdisplay").prop("disabled", true);
-    $('#cmdsave').show();
-
-        $('.processing').hide(); 
-
 
 }
 

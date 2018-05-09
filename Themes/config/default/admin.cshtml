@@ -32,7 +32,9 @@
     <input id="pagenumber" type="hidden" value="1" />
     <input id="searchtext" type="hidden" value="" />
     <input id="searchcategory" type="hidden" value="" />
-    <input id="orderby" type="hidden" value="{bycategoryproduct}" />
+    <input id="orderby" type="hidden" value="order by NB3.productref" />
+    <input id="xmlupdatemodeldata" type="hidden" datatype="coded" value="" />
+    <input id="cascade" type="hidden" value="True" />
 </div>
 <input id="deletemsg" type="hidden" value="@ResourceKey("Admin.deletemsg")"></input> <!-- used for prompt on delete -->
 <div id="nbsnotify"></div>
@@ -45,10 +47,7 @@
             <i class="fa fa-bars"></i>
         </a>
         <div class="actionbuttonwrapper">
-            <button id="cmdsave" type="button" class="btn btn-primary" style="display: none;">@ResourceKey("General.cmdSaveButton")</button>
-            <button id="addnew" type="button" class="btn btn-primary" style="display: none;">@ResourceKey("General.cmdAddButton")</button>
-            <button id="cmddelete" type="button" class="btn btn-danger" style="display: none;">@ResourceKey("General.cmdDeleteButton")</button>
-            <button id="cmdreturn" type="button" class="btn btn-default" style="display: none;">@ResourceKey("General.cmdReturnButton")</button>
+            <button id="cmdsave" type="button" class="btn btn-primary" style="display:none;">@ResourceKey("General.cmdSaveButton")</button>
         </div>
     </div>
     <div class="col-xs-3 col-sm-3 top-panel-right">

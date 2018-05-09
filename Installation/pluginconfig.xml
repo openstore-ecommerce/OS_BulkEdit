@@ -4,7 +4,7 @@
   </hidden>
   <textbox>
     <ctrl update="save">OS_BulkEdit</ctrl>
-    <name update="save">OS_BulkEdit</name>
+    <name update="save">Bulk Edit</name>
     <icon update="save" />
     <group update="save">Admin</group>
     <path update="save">/DesktopModules/NBright/OS_BulkEdit/Admin.ascx</path>

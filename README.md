@@ -1,5 +1,7 @@
 # OS_BulkEdit
 
-OpenStore plugin for OpenStore plugin VS Template
-=================================================
+OpenStore BulkEdit
+==================
+
+This plugin for open store allows a user to edit mulitple products and models on the same page.
 
