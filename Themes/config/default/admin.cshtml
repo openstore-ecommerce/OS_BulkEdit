@@ -2,6 +2,19 @@
 @using System.Globalization
 @using NBrightDNN
 @using NBrightCore.common
+@using System
+@using System.Globalization
+@using System.Linq
+@using System.Text
+@using System.Web
+@using System.Web.Razor.Parser
+@using System.Web.Razor.Parser.SyntaxTree
+@using System.Xml
+@using DotNetNuke.Common
+@using NBrightDNN
+@using Nevoweb.DNN.NBrightBuy.Components;
+@using NBrightCore.common;
+
 
 @AddMetaData("resourcepath", "/DesktopModules/NBright/NBrightBuy/App_LocalResources/")
 @AddMetaData("resourcepath", "/DesktopModules/NBright/OS_BulkEdit/App_LocalResources/")
@@ -15,7 +28,11 @@
     <input id="selecteditemid" type="hidden" value=""></input> <!-- used as selected edit itemid -->
     <input id="newitem" type="hidden" value=""></input> <!-- used to hold "new" token to create new record -->
     <input id="typecode" type="hidden" value="OS_BulkEdit"></input> <!-- used as selected edit itemid -->
-    <input id="selectedclientid" type="hidden" value=""></input>
+    <input id="pagesize" type="hidden" value="20" />
+    <input id="pagenumber" type="hidden" value="1" />
+    <input id="searchtext" type="hidden" value="" />
+    <input id="searchcategory" type="hidden" value="" />
+    <input id="orderby" type="hidden" value="{bycategoryproduct}" />
 </div>
 <input id="deletemsg" type="hidden" value="@ResourceKey("Admin.deletemsg")"></input> <!-- used for prompt on delete -->
 <div id="nbsnotify"></div>
@@ -36,6 +53,50 @@
     </div>
     <div class="col-xs-3 col-sm-3 top-panel-right">
         @EditCultureSelect("editlanguage", "")
+    </div>
+</div>
+<br />
+
+<div class="row productsearchpanel">
+    <div class="col-xs-12 col-sm-12">
+        <div class="box">
+            <div class="box-header">
+                <div class="box-name">
+                    <i class="fa fa-search"></i><span>@ResourceKey("General.Find") @ResourceKey("General.Products")</span>
+                </div>
+                <div class="box-icons">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a><a class="expand-link"><i class="fa fa-expand"></i></a>
+                    <a class="close-link"><i class="fa fa-times"></i></a>
+                </div>
+                <div class="no-move">
+                </div>
+            </div>
+            <div class="box-content">
+                <div class="form-horizontal dnnForm">
+                    <div id="productsearchsection" class="form-group">
+                        <!-- Is this ID needed? -->
+                        <label class="col-sm-1 control-label">@ResourceKey("General.Search")</label>
+                        <div class="col-sm-3">
+                            <input id="productAdmin_searchtext" class="form-control" type="text">
+                        </div>
+                        <label class="col-sm-1 control-label">@ResourceKey("General.Category")</label>
+                        <div class="col-sm-3">
+                            @CategoryDropDownList(StoreSettings.Current.SettingsInfo, "genxml/dropdownlist/ddllistsearchcategory", "class='form-control'", true, 20, false, false, 0, "", ".")
+                        </div>
+                        <div class="col-sm-2">
+                            <a id="productAdmin_cmdSearch" class="btn btn-primary primarybutton" href="javascript:void(0)"><i title="Search" class="fa fa-search fa-fw fa-lg"></i></a>
+                            <a id="productAdmin_cmdReset" class="btn btn-default secondarybutton" href="javascript:void(0)"><i title="Reset" class="fa fa-refresh fa-fw fa-lg"></i></a>
+                        </div>
+                        <div class="col-sm-2">
+                            <label class="control-label">@ResourceKey("ProductViewSettings.lblcascaderesults")</label>
+                            @CheckBox(StoreSettings.Current.SettingsInfo, "genxml/checkbox/chkcascaderesults", "", "", true)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <br />

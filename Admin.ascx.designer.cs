@@ -7,13 +7,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace OpenStore.Providers.OS_BulkEdit
-{
-
-
-    public partial class Admin
-    {
-
+namespace OpenStore.Providers.OS_BulkEdit {
+    
+    
+    public partial class Admin {
+        
         /// <summary>
         /// phData control.
         /// </summary>

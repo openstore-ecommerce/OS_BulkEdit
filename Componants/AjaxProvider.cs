@@ -44,10 +44,7 @@ namespace OpenStore.Providers.OS_BulkEdit
                     strOut = "<root>" + UserController.Instance.GetCurrentUserInfo().Username + "</root>";
                     break;
                 case "os_bulkedit_getdata":
-                    strOut = GetData(context);
-                    break;
-                case "os_bulkedit_addnew":
-                    strOut = GetData(context, true);
+                    strOut = ProductAdminList(context);
                     break;
                 case "os_bulkedit_deleterecord":
                     strOut = DeleteData(context);
@@ -70,78 +67,6 @@ namespace OpenStore.Providers.OS_BulkEdit
 
         #region "Methods"
 
-        private String GetData(HttpContext context, bool clearCache = false)
-        {
-
-            var objCtrl = new NBrightBuyController();
-            var strOut = "";
-            //get uploaded params
-            var ajaxInfo = NBrightBuyUtils.GetAjaxFields(context);
-
-            var itemid = ajaxInfo.GetXmlProperty("genxml/hidden/itemid");
-            var typeCode = ajaxInfo.GetXmlProperty("genxml/hidden/typecode");
-            var newitem = ajaxInfo.GetXmlProperty("genxml/hidden/newitem");
-            var selecteditemid = ajaxInfo.GetXmlProperty("genxml/hidden/selecteditemid");
-            var moduleid = ajaxInfo.GetXmlProperty("genxml/hidden/moduleid");
-            var editlang = ajaxInfo.GetXmlProperty("genxml/hidden/editlang");
-            if (editlang == "") editlang = Utils.GetCurrentCulture();
-
-            if (!Utils.IsNumeric(moduleid)) moduleid = "-2"; // use moduleid -2 for razor
-
-            if (clearCache) NBrightBuyUtils.RemoveModCache(Convert.ToInt32(moduleid));
-
-            if (newitem == "new") selecteditemid = AddNew(moduleid, typeCode);
-
-            var templateControl = "/DesktopModules/NBright/OS_BulkEdit";
-
-            if (Utils.IsNumeric(selecteditemid))
-            {
-                // do edit field data if a itemid has been selected
-                var obj = objCtrl.Get(Convert.ToInt32(selecteditemid), "", editlang);
-                strOut = NBrightBuyUtils.RazorTemplRender("datafields.cshtml", Convert.ToInt32(moduleid), itemid + editlang + selecteditemid, obj, templateControl, "config", editlang, StoreSettings.Current.Settings());
-            }
-            else
-            {
-                // Return list of items
-                var l = objCtrl.GetList(PortalSettings.Current.PortalId, Convert.ToInt32(moduleid), typeCode, "", " order by [XMLData].value('(genxml/textbox/ref)[1]','nvarchar(50)')", 0, 0, 0, 0, editlang);
-                strOut = NBrightBuyUtils.RazorTemplRenderList("datalist.cshtml", Convert.ToInt32(moduleid), editlang, l, templateControl, "config", editlang, StoreSettings.Current.Settings());
-            }
-
-            return strOut;
-
-        }
-
-        private String AddNew(String moduleid, String typeCode)
-        {
-            if (!Utils.IsNumeric(moduleid)) moduleid = "-2"; // -2 for razor
-
-            var objCtrl = new NBrightBuyController();
-            var nbi = new NBrightInfo(true);
-            nbi.PortalId = PortalSettings.Current.PortalId;
-            nbi.TypeCode = typeCode;
-            nbi.ModuleId = Convert.ToInt32(moduleid);
-            nbi.ItemID = -1;
-            var itemId = objCtrl.Update(nbi);
-            nbi.ItemID = itemId;
-
-            foreach (var lang in DnnUtils.GetCultureCodeList(PortalSettings.Current.PortalId))
-            {
-                var nbi2 = new NBrightInfo(true);
-                nbi2.PortalId = PortalSettings.Current.PortalId;
-                nbi2.TypeCode = typeCode + "LANG";
-                nbi2.ModuleId = Convert.ToInt32(moduleid);
-                nbi2.ItemID = -1;
-                nbi2.Lang = lang;
-                nbi2.ParentItemId = itemId;
-                nbi2.GUIDKey = "";
-                nbi2.ItemID = objCtrl.Update(nbi2);
-            }
-
-            NBrightBuyUtils.RemoveModCache(nbi.ModuleId);
-
-            return nbi.ItemID.ToString("");
-        }
-
         private String SaveData(HttpContext context)
         {
             var objCtrl = new NBrightBuyController();
@@ -149,34 +74,9 @@ namespace OpenStore.Providers.OS_BulkEdit
             //get uploaded params
             var ajaxInfo = NBrightBuyUtils.GetAjaxFields(context);
 
-            var itemid = ajaxInfo.GetXmlProperty("genxml/hidden/itemid");
             var editlang = ajaxInfo.GetXmlProperty("genxml/hidden/editlang");
             if (editlang == "") editlang = Utils.GetCurrentCulture();
 
-            if (Utils.IsNumeric(itemid))
-            {
-                // get DB record
-                var nbi = objCtrl.Get(Convert.ToInt32(itemid));
-                if (nbi != null)
-                {
-                    var typecode = nbi.TypeCode;
-
-                    // get data passed back by ajax
-                    var strIn = HttpUtility.UrlDecode(Utils.RequestParam(context, "inputxml"));
-                    // update record with ajax data
-                    nbi.UpdateAjax(strIn);
-                    nbi.GUIDKey = nbi.GetXmlProperty("genxml/textbox/ref");
-                    objCtrl.Update(nbi);
-
-                    // do langauge record
-                    var nbi2 = objCtrl.GetDataLang(Convert.ToInt32(itemid), editlang);
-                    nbi2.UpdateAjax(strIn);
-                    objCtrl.Update(nbi2);
-
-                    DataCache.ClearCache(); // clear ALL cache.
-
-                }
-            }
             return "";
         }
 
@@ -207,6 +107,149 @@ namespace OpenStore.Providers.OS_BulkEdit
                 return true;
             }
             return false;
+        }
+
+        public string ProductAdminList(HttpContext context)
+        {
+
+            try
+            {
+                if (NBrightBuyUtils.CheckRights())
+                {
+                    var ajaxInfo = NBrightBuyUtils.GetAjaxInfo(context);
+
+                    if (UserController.Instance.GetCurrentUserInfo().UserID <= 0) return null;
+
+                    var editlang = ajaxInfo.GetXmlProperty("genxml/hidden/editlang");
+                    if (editlang == "") editlang = Utils.GetCurrentCulture();
+
+                    NBrightBuyUtils.RemoveModCache(-2);
+
+                    ajaxInfo.SetXmlProperty("genxml/hidden/razortemplate", "datalist.cshtml");
+
+                    var strOut = "";
+
+                    // select a specific entity data type for the product (used by plugins)
+                    var entitytypecodelang = "PRDLANG";
+                    var entitytypecode = "PRD";
+                    
+                    var filter = ajaxInfo.GetXmlProperty("genxml/hidden/filter");
+                    var orderby = ajaxInfo.GetXmlProperty("genxml/hidden/orderby");
+                    var returnLimit = ajaxInfo.GetXmlPropertyInt("genxml/hidden/returnlimit");
+                    var pageNumber = ajaxInfo.GetXmlPropertyInt("genxml/hidden/pagenumber");
+                    var pageSize = ajaxInfo.GetXmlPropertyInt("genxml/hidden/pagesize");
+                    var cascade = ajaxInfo.GetXmlPropertyBool("genxml/hidden/cascade");
+                    var portalId = PortalSettings.Current.PortalId;
+                    if (ajaxInfo.GetXmlProperty("genxml/hidden/portalid") != "")
+                    {
+                        portalId = ajaxInfo.GetXmlPropertyInt("genxml/hidden/portalid");
+                    }
+
+                    var searchText = ajaxInfo.GetXmlProperty("genxml/hidden/searchtext");
+                    var searchCategory = ajaxInfo.GetXmlProperty("genxml/hidden/searchcategory");
+
+                    if (searchText != "") filter += " and (NB3.[ProductName] like '%" + searchText + "%' or NB3.[ProductRef] like '%" + searchText + "%' or NB3.[Summary] like '%" + searchText + "%' ) ";
+
+                    if (Utils.IsNumeric(searchCategory))
+                    {
+                        if (orderby == "{bycategoryproduct}") orderby += searchCategory;
+                        var objQual = DotNetNuke.Data.DataProvider.Instance().ObjectQualifier;
+                        var dbOwner = DotNetNuke.Data.DataProvider.Instance().DatabaseOwner;
+                        if (!cascade)
+                            filter += " and NB1.[ItemId] in (select parentitemid from " + dbOwner + "[" + objQual + "NBrightBuy] where typecode = 'CATXREF' and XrefItemId = " + searchCategory + ") ";
+                        else
+                            filter += " and NB1.[ItemId] in (select parentitemid from " + dbOwner + "[" + objQual + "NBrightBuy] where (typecode = 'CATXREF' and XrefItemId = " + searchCategory + ") or (typecode = 'CATCASCADE' and XrefItemId = " + searchCategory + ")) ";
+                    }
+                    else
+                    {
+                        if (orderby == "{bycategoryproduct}") orderby = " order by NB3.productname ";
+                    }
+
+                    // logic for client list of products
+                    if (NBrightBuyUtils.IsClientOnly())
+                    {
+                        filter += " and NB1.ItemId in (select ParentItemId from dbo.[NBrightBuy] as NBclient where NBclient.TypeCode = 'USERPRDXREF' and NBclient.UserId = " + UserController.Instance.GetCurrentUserInfo().UserID.ToString("") + ") ";
+                    }
+
+                    var recordCount = 0;
+                    var objCtrl = new NBrightBuyController();
+
+                    if (pageNumber == 0) pageNumber = 1;
+                    if (pageSize == 0) pageSize = 20;
+
+                    // get only entity type required.  Do NOT use typecode, that is set by the filter.
+                    recordCount = objCtrl.GetListCount(PortalSettings.Current.PortalId, -1, "PRD", filter, "", editlang);
+
+                    // get selected entitytypecode.
+                    var list = objCtrl.GetDataList(PortalSettings.Current.PortalId, -1, "PRD", "PRDLANG", editlang, filter, orderby, StoreSettings.Current.DebugMode, "", returnLimit, pageNumber, pageSize, recordCount);
+
+                    return RenderProductAdminList(list, ajaxInfo, recordCount);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.LogException(ex);
+                return ex.ToString();
+            }
+            return "";
+        }
+
+        public static String RenderProductAdminList(List<NBrightInfo> list, NBrightInfo ajaxInfo, int recordCount)
+        {
+            try
+            {
+                if (NBrightBuyUtils.CheckRights())
+                {
+                    if (list == null) return "";
+                    if (UserController.Instance.GetCurrentUserInfo().UserID <= 0) return "";
+
+                    var strOut = "";
+
+                    // select a specific entity data type for the product (used by plugins)
+                    var themeFolder = "config";
+                    var pageNumber = ajaxInfo.GetXmlPropertyInt("genxml/hidden/pagenumber");
+                    var pageSize = ajaxInfo.GetXmlPropertyInt("genxml/hidden/pagesize");
+                    var razortemplate = ajaxInfo.GetXmlProperty("genxml/hidden/razortemplate");
+                    var editlang = ajaxInfo.GetXmlProperty("genxml/hidden/editlang");
+                    if (editlang == "") editlang = Utils.GetCurrentCulture();
+
+                    var templateControl = "/DesktopModules/NBright/OS_BulkEdit";
+
+                    bool paging = pageSize > 0;
+
+                    var passSettings = new Dictionary<string, string>();
+                    foreach (var s in ajaxInfo.ToDictionary())
+                    {
+                        passSettings.Add(s.Key, s.Value);
+                    }
+                    foreach (var s in StoreSettings.Current.Settings()) // copy store setting, otherwise we get a byRef assignement
+                    {
+                        if (passSettings.ContainsKey(s.Key))
+                            passSettings[s.Key] = s.Value;
+                        else
+                            passSettings.Add(s.Key, s.Value);
+                    }
+
+                    strOut = NBrightBuyUtils.RazorTemplRenderList(razortemplate, 0, "", list, templateControl, themeFolder, editlang, passSettings);
+
+                    // add paging if needed
+                    if (paging && (recordCount > pageSize))
+                    {
+                        var pg = new NBrightCore.controls.PagingCtrl();
+                        strOut += pg.RenderPager(recordCount, pageSize, pageNumber);
+                    }
+
+                    return strOut;
+
+                }
+                return "";
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+
         }
 
 
