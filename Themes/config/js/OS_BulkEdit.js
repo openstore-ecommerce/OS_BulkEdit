@@ -11,8 +11,8 @@ $(document).ready(function () {
 
     $('.selecteditlanguage').unbind('click');
     $('.selecteditlanguage').click(function () {
-        $('#nextlang').val($(this).attr('lang')); // alter lang after, so we get correct data record
-        nbxget('os_bulkedit_selectlang', '#editdata'); // do ajax call to save current edit form
+        $('#editlang').val($(this).attr('lang')); 
+        nbxget('os_bulkedit_getdata', '#selectparams', '#editdata'); // do ajax call to get edit form
     });
 
 });
@@ -27,10 +27,6 @@ function nbxgetCompleted(e) {
         nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');// relist after save
     }
 
-    if (e.cmd == 'os_bulkedit_selectlang') {
-        $('#editlang').val($('#nextlang').val()); // alter lang after, so we get correct data record
-        nbxget('os_bulkedit_getdata', '#selectparams', '#editdata'); // do ajax call to get edit form
-    }
 
     if (e.cmd == 'os_bulkedit_selectchangedisable' || e.cmd == 'os_bulkedit_selectchangehidden') {
         $('.processing').hide();
@@ -43,6 +39,8 @@ function nbxgetCompleted(e) {
     if (e.cmd == 'os_bulkedit_getdata') {
         $('.processing').hide();
         $('.selecteditlanguage').show();
+        $('#cmdsave').hide();
+        $('#cmdcancel').hide();
 
         $("#ddllistsearchcategory").unbind("change");
         $("#ddllistsearchcategory").change(function () {
@@ -124,37 +122,56 @@ function nbxgetCompleted(e) {
 
         $('#cmdsave').unbind("click");
         $('#cmdsave').click(function () {
-            $('.processing').show();
-            $('#selecteditemid').val($(this).attr('itemid'));
-            $('.productAdmin_cmdSaveItem').hide();
-
-            //build XML for all records.
-            var xdat = '<root>';
-            $('.modelrow').each(function (i, obj) {
-                if ($('#isdirty_' + $(this).attr('itemid')).val() == '1') {
-                    xdat += "<models productid='" + $(this).attr('itemid') + "'>";
-                    xdat += $.fn.genxmlajaxitems($(this), '.modelitem');
-                    xdat += "</models>";
-                }
-            });
-            xdat += "</root>";
-
-            //move data to update postback field
-            $('#xmlupdatemodeldata').val(xdat);
-
-            $('#cmdsave').hide();
-            nbxget('os_bulkedit_saveitem', '#selectparams');
-        });        
-
+            saverecords();
+        });
 
         $('.modelfield').unbind("keyup");
         $('.modelfield').keyup(function () {
             $('#cmdsave').show();
+            $('#cmdcancel').show();
             $('.selecteditlanguage').hide();
             $('#isdirty_' + $(this).attr('itemid')).val('1');            
+            $(this).css("background-color", "#FFE4E1");
         });
+
+        $('#cmdcancel').unbind("click");
+        $('#cmdcancel').click(function () {
+            $('.processing').show();
+            nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');
+        });
+
+        $('#dropdownlistpagesize').unbind("change");
+        $('#dropdownlistpagesize').change(function () {
+            $('#pagenumber').val('1');
+            $('#pagesize').val($(this).val());
+            $('.processing').show();
+            nbxget('os_bulkedit_getdata', '#selectparams', '#editdata');
+        });
+        
 
     }
 
 }
 
+function saverecords() {
+    $('.processing').show();
+    $('#selecteditemid').val($(this).attr('itemid'));
+
+    //build XML for all records.
+    var xdat = '<root>';
+    $('.modelrow').each(function (i, obj) {
+        if ($('#isdirty_' + $(this).attr('itemid')).val() == '1') {
+            xdat += "<models productid='" + $(this).attr('itemid') + "'>";
+            xdat += $.fn.genxmlajaxitems($(this), '.modelitem');
+            xdat += "</models>";
+        }
+    });
+    xdat += "</root>";
+
+    //move data to update postback field
+    $('#xmlupdatemodeldata').val(xdat);
+
+    $('#cmdsave').hide();
+    $('#cmdcancel').hide();
+    nbxget('os_bulkedit_saveitem', '#selectparams');
+}

@@ -26,13 +26,13 @@ namespace OpenStore.Providers.OS_BulkEdit
 
         public override string ProcessCommand(string paramCmd, HttpContext context, string editlang = "")
         {
-            if (!NBrightBuyUtils.CheckRights())
+            if (!CheckRights())
             {
                 return "Security Error.";
             }
 
             var ajaxInfo = NBrightBuyUtils.GetAjaxFields(context);
-            var lang = NBrightBuyUtils.SetContextLangauge(ajaxInfo); // Ajax breaks context with DNN, so reset the context language to match the client.
+            var uilang = NBrightBuyUtils.SetContextLangauge(ajaxInfo); // Ajax breaks context with DNN, so reset the context language to match the client.
             var objCtrl = new NBrightBuyController();
 
             var strOut = "OS_BulkEdit Ajax Error";
@@ -51,9 +51,6 @@ namespace OpenStore.Providers.OS_BulkEdit
                     break;
                 case "os_bulkedit_saveitem":
                     DataSave(context);
-                    break;
-                case "os_bulkedit_selectlang":
-                    //strOut = SaveData(context);
                     break;
                 case "os_bulkedit_selectchangedisable":
                     if (!NBrightBuyUtils.CheckRights()) break;

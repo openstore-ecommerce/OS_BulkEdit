@@ -97,6 +97,7 @@
     <None Include="BuildScripts\build.bat" />
     <None Include="BuildScripts\ModulePackage.targets" />
     <None Include="BuildScripts\MSBuild.Community.Tasks.Targets" />
+    <None Include="docs\TestPlan_OS_BulkEdit.docx" />
     <None Include="OS_BulkEdit.dnn" />
     <None Include="README.md" />
     <None Include="Themes\config\default\admin_head.cshtml" />

@@ -48,6 +48,7 @@
         </a>
         <div class="actionbuttonwrapper">
             <button id="cmdsave" type="button" class="btn btn-primary" style="display:none;">@ResourceKey("General.cmdSaveButton")</button>
+            <button id="cmdcancel" type="button" class="btn btn-danger" style="display: none;">@ResourceKey("General.cmdCancelButton")</button>
         </div>
     </div>
     <div class="col-xs-3 col-sm-3 top-panel-right">
@@ -75,13 +76,12 @@
             <div class="box-content">
                 <div class="form-horizontal dnnForm">
                     <div id="productsearchsection" class="form-group">
-                        <!-- Is this ID needed? -->
                         <label class="col-sm-1 control-label">@ResourceKey("General.Search")</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <input id="productAdmin_searchtext" class="form-control" type="text">
                         </div>
                         <label class="col-sm-1 control-label">@ResourceKey("General.Category")</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             @CategoryDropDownList(StoreSettings.Current.SettingsInfo, "genxml/dropdownlist/ddllistsearchcategory", "class='form-control'", true, 20, false, false, 0, "", ".")
                         </div>
                         <div class="col-sm-2">
@@ -92,8 +92,18 @@
                             <label class="control-label">@ResourceKey("ProductViewSettings.lblcascaderesults")</label>
                             @CheckBox(StoreSettings.Current.SettingsInfo, "genxml/checkbox/chkcascaderesults", "", "", true)
                         </div>
+                        <label class="col-sm-1 control-label">@ResourceKey("General.pagesize")</label>
+                        <div class="col-sm-1">
+                            <select id="dropdownlistpagesize" class="form-control">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
+                    </div>
             </div>
         </div>
     </div>

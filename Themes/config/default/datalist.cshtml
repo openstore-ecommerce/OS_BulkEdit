@@ -40,10 +40,8 @@
                     <thead>
                         <tr>
                             <th></th>
-                            <th style="width:100%"></th>
-                            <th>@ResourceKey("General.Hidden")</th>
-                            <th>@ResourceKey("General.Disable")</th>
                             <th></th>
+                            <th style="width:100%"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -51,103 +49,116 @@
                         @foreach (NBrightInfo nbi in Model.List)
                         {
                             var prdData = new ProductData(nbi.ItemID, nbi.PortalId, nbi.Lang);
-                    <input id="isdirty_@nbi.ItemID" type="hidden" value="" />
+                            <input id="isdirty_@nbi.ItemID" type="hidden" value="" />
 
-                    <tr>
-                        @if (nbi.GetXmlProperty("genxml/imgs/genxml[1]/hidden/imageurl") != "") 
-                        {
-                    <td class="image centered">
-                        <img src="/DesktopModules/NBright/NBrightBuy/NBrightThumb.ashx?src=@nbi.GetXmlProperty("genxml/imgs/genxml[1]/hidden/imageurl")&amp;w=80&amp;h=60">
-                    </td>
-                    }
-                    else
-                    {
-                    <td class="noimage centered">
-                        <i class="fa fa-picture-o fa-3x"></i>
-                    </td>
-                    }
-                        <td>
-                            <h3>
-                                @nbi.GetXmlProperty("genxml/lang/genxml/textbox/txtproductname")
-                                @if (nbi.GetXmlProperty("genxml/textbox/txtproductref") != "")
+                            <tr>
+                                @if (nbi.GetXmlProperty("genxml/imgs/genxml[1]/hidden/imageurl") != "")
+                                {
+                                    <td class="image centered">
+                                        <img src="/DesktopModules/NBright/NBrightBuy/NBrightThumb.ashx?src=@nbi.GetXmlProperty("genxml/imgs/genxml[1]/hidden/imageurl")&amp;w=80&amp;h=60">
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="noimage centered">
+                                        <i class="fa fa-picture-o fa-3x"></i>
+                                    </td>
+                                }
+                                    <td>
+                                        <div class="centered">
+                                            <label>
+                                                @ResourceKey("General.Disable")
+                                            </label>
+                                            @{
+        var checkdisplay2 = "";
+                                            }
+                                            @if (nbi.GetXmlPropertyBool("genxml/checkbox/chkdisable"))
+    {
+        checkdisplay2 = "-check";
+    }
+                                            <a href="javascript:void(0)">
+                                                <i class="fa fa@(checkdisplay2)-circle fa-2x selectchangedisable " itemid="@nbi.ItemID"></i>
+                                            </a>
+                                        </div>
+
+                                        <div class="centered">
+                                            <label>
+                                                @ResourceKey("General.Hidden")
+                                            </label>
+                                            @{
+        var checkdisplay = "";
+                                            }
+                                            @if (nbi.GetXmlPropertyBool("genxml/checkbox/chkishidden"))
+    {
+        checkdisplay = "-check";
+    }
+                                            <a href="javascript:void(0)">
+                                                <i class="fa fa@(checkdisplay)-circle fa-2x selectchangehidden" itemid="@nbi.ItemID"></i>
+                                            </a>
+
+
+                                        </div>
+                                        <div class="centered">
+                                            <label>
+                                                @ResourceKey("General.Delete")
+                                            </label>
+                                            <a class="productAdmin_cmdDelete" itemid="@(nbi.ItemID)" href="javascript:void(0)">@ResourceKey("General.cmdDeleteIcon")</a>
+                                        </div>
+
+                                    </td>
+                                <td>
+                                    <h3>
+                                        @nbi.GetXmlProperty("genxml/lang/genxml/textbox/txtproductname")
+                                        @if (nbi.GetXmlProperty("genxml/textbox/txtproductref") != "")
             {
                 var refout = ResourceKey("General.Code") + ": " + nbi.GetXmlProperty("genxml/textbox/txtproductref");
-                    @(refout)
+                            @(refout)
 }
-                            </h3>
-                            <br />
-                            <table id="modellistwrapper_@(nbi.ItemID)" class="table table-striped table-hover table-responsive">
-                                <thead>
-                                    <tr>
-                                        <th width="40%">@ResourceKey("General.Name")@LangFlag(nbi.Lang)</th>
-                                        <th width="20%">@ResourceKey("General.Code")</th>
-                                        <th width="10%">@ResourceKey("General.Price")</th>
-                                        <th width="10%">@ResourceKey("General.Tax")</th>
-                                        <th width="10%">@ResourceKey("General.Weight")</th>
-                                        <th width="10%">@ResourceKey("General.Stock")</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="modelrow_@(nbi.ItemID) modelrow" itemid="@nbi.ItemID">
-                                    @{
+                                    </h3>
+                                    <br />
+                                    <table id="modellistwrapper_@(nbi.ItemID)" class="table table-striped table-hover table-responsive">
+                                        <thead>
+                                            <tr>
+                                                <th width="40%">@ResourceKey("General.Name")@LangFlag(nbi.Lang)</th>
+                                                <th width="20%">@ResourceKey("General.Code")</th>
+                                                <th width="10%">@ResourceKey("General.Price")</th>
+                                                <th width="10%">@ResourceKey("General.Tax")</th>
+                                                <th width="10%">@ResourceKey("General.Weight")</th>
+                                                <th width="10%">@ResourceKey("General.Stock")</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="modelrow_@(nbi.ItemID) modelrow" itemid="@nbi.ItemID">
+                                            @{
                     var lp1 = 1;
-                                    }
-                                    @foreach (var nbiModel in prdData.Models)
+                                            }
+                                            @foreach (var nbiModel in prdData.Models)
                 {
-                    <tr class="modelitem">
-                        <td>
-                            <input id="modelid_@lp1" type="hidden" value="@nbiModel.GetXmlProperty("genxml/hidden/modelid")" />
-                            @TextBox(nbiModel, "genxml/lang/genxml/textbox/txtmodelname_" + lp1, "class='form-control input-sm modelfield' maxlength='250' itemid='" + nbi.ItemID + "'", "")
-                        </td>
-                        <td>@TextBox(nbiModel, "genxml/textbox/txtmodelref_" + lp1, "class='form-control input-sm modelfield' maxlength='250' itemid='" + nbi.ItemID + "' ", "")</td>
-                        <td>@TextBox(nbiModel, "genxml/textbox/txtunitcost_" + lp1, "class='form-control input-sm modelfield' maxlength='250'  datatype='double' itemid='" + nbi.ItemID + "'", "0.00")</td>
-                        <td>@TaxRateDropDown(nbiModel, "genxml/dropdownlist/taxrate_" + lp1, "tax", "class='taxratedropdown form-control modelfield' itemid='" + nbi.ItemID + "'")</td>
-                        <td>@TextBox(nbiModel, "genxml/textbox/weight_" + lp1, "class='form-control input-sm modelfield' maxlength='10'  datatype='double' itemid='" + nbi.ItemID + "'")</td>
-                        @if (nbiModel.GetXmlPropertyBool("genxml/checkbox/chkstockon"))
+                    nbiModel.Lang = nbi.Lang;
+                            <tr class="modelitem">
+                                <td>
+                                    <input id="modelid_@lp1" type="hidden" value="@nbiModel.GetXmlProperty("genxml/hidden/modelid")" />
+                                    @TextBox(nbiModel, "genxml/lang/genxml/textbox/txtmodelname_" + lp1, "class='form-control input-sm modelfield' maxlength='250' itemid='" + nbi.ItemID + "'", "")
+                                </td>
+                                <td>@TextBox(nbiModel, "genxml/textbox/txtmodelref_" + lp1, "class='form-control input-sm modelfield' maxlength='250' itemid='" + nbi.ItemID + "' ", "")</td>
+                                <td>@TextBox(nbiModel, "genxml/textbox/txtunitcost_" + lp1, "class='form-control input-sm modelfield' maxlength='250'  datatype='double' itemid='" + nbi.ItemID + "'")</td>
+                                <td>@TaxRateDropDown(nbiModel, "genxml/dropdownlist/taxrate_" + lp1, "tax", "class='taxratedropdown form-control modelfield' itemid='" + nbi.ItemID + "'")</td>
+                                <td>@TextBox(nbiModel, "genxml/textbox/weight_" + lp1, "class='form-control input-sm modelfield' maxlength='10'  datatype='double' itemid='" + nbi.ItemID + "'")</td>
+                                @if (nbiModel.GetXmlPropertyBool("genxml/checkbox/chkstockon"))
     {
-                    <td>@TextBox(nbiModel, "genxml/textbox/txtqtyremaining_" + lp1, "class='form-control input-sm modelfield' maxlength='250'  datatype='double' itemid='" + nbi.ItemID + "'", "0")</td>
+                            <td>@TextBox(nbiModel, "genxml/textbox/txtqtyremaining_" + lp1, "class='form-control input-sm modelfield' maxlength='250'  datatype='double' itemid='" + nbi.ItemID + "'", "")</td>
 }
 else
 {
-                    <td></td>
+                            <td></td>
 }
-                    </tr>
+                            </tr>
 lp1 += 1;
 }
-                                </tbody>
-                            </table>
-                        </td>
-                        <td class="centered" valign="top">
-                            @{
-            var checkdisplay = "";
-                            }
-                            @if (nbi.GetXmlPropertyBool("genxml/checkbox/chkishidden"))
-        {
-            checkdisplay = "-check";
-        }
-                            <a href="javascript:void(0)">
-                                <i class="fa fa@(checkdisplay)-circle fa-2x selectchangehidden" itemid="@nbi.ItemID"></i>
-                            </a>
-                        </td>
-                        <td class="centered" valign="top">
-                            @{
-            var checkdisplay2 = "";
-                            }
-                            @if (nbi.GetXmlPropertyBool("genxml/checkbox/chkdisable"))
-        {
-            checkdisplay2 = "-check";
-        }
-                            <a href="javascript:void(0)">
-                                <i class="fa fa@(checkdisplay2)-circle fa-2x selectchangedisable " itemid="@nbi.ItemID"></i>
-                            </a>
-                        </td>
-                        <td valign="top">
-                            <a class="productAdmin_cmdDelete" itemid="@(nbi.ItemID)" href="javascript:void(0)">@ResourceKey("General.cmdDeleteIcon")</a>
-                            <div class="savedirty_@(nbi.ItemID)" style="display:none;">
-                                <a class="productAdmin_cmdSaveItem" itemid="@(nbi.ItemID)" href="javascript:void(0)">@ResourceKey("General.cmdSaveIcon")</a>
-                            </div>
-                        </td>
-                    </tr>
-}
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>

@@ -3,7 +3,7 @@
     <index datatype="double">21</index>
   </hidden>
   <textbox>
-    <ctrl update="save">OS_BulkEdit</ctrl>
+    <ctrl update="save">os_bulkedit</ctrl>
     <name update="save">Bulk Edit</name>
     <icon update="save" />
     <group update="save">Admin</group>
