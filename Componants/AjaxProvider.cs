@@ -37,6 +37,8 @@ namespace OpenStore.Providers.OS_BulkEdit
 
             var strOut = "OS_BulkEdit Ajax Error";
 
+            var productFunctions = new ProductFunctions();
+
             // NOTE: The paramCmd MUST start with the plugin ref. in lowercase. (links ajax provider to cmd)
             switch (paramCmd.ToLower())
             {
@@ -54,11 +56,11 @@ namespace OpenStore.Providers.OS_BulkEdit
                     break;
                 case "os_bulkedit_selectchangedisable":
                     if (!NBrightBuyUtils.CheckRights()) break;
-                    strOut = ProductFunctions.ProductDisable(context);
+                    strOut = productFunctions.ProductDisable(context);
                     break;
                 case "os_bulkedit_selectchangehidden":
                     if (!NBrightBuyUtils.CheckRights()) break;
-                    strOut = ProductFunctions.ProductHidden(context);
+                    strOut = productFunctions.ProductHidden(context);
                     break;
             }
 

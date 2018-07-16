@@ -4,9 +4,9 @@
   </hidden>
   <textbox>
     <ctrl update="save">os_bulkedit</ctrl>
-    <name update="save">Bulk Edit</name>
+    <name update="save">Quick Product Edit</name>
     <icon update="save" />
-    <group update="save">Admin</group>
+    <group update="save">Catalog</group>
     <path update="save">/DesktopModules/NBright/OS_BulkEdit/Admin.ascx</path>
     <help update="save" />
     <description update="save" />
