@@ -12,10 +12,9 @@ namespace OpenStore.Providers.OS_BulkEdit
 {
     public class Filter : Nevoweb.DNN.NBrightBuy.Components.Interfaces.FilterInterface
     {
-        public override string GetFilter(string currentFilter, NavigationData navigationData, ModSettings setting, HttpContext context)
+        public override string GetFilter(string currentFilter, NavigationData navigationData, ModSettings setting, NBrightInfo ajaxInfo)
         {
             throw new NotImplementedException();
         }
-
     }
 }

@@ -56,17 +56,56 @@ namespace OpenStore.Providers.OS_BulkEdit
                     break;
                 case "os_bulkedit_selectchangedisable":
                     if (!NBrightBuyUtils.CheckRights()) break;
-                    strOut = productFunctions.ProductDisable(context);
+                    strOut = UpdateBoolean(context, "genxml/checkbox/chkdisable");
+                    strOut = ProductAdminList(context);
                     break;
                 case "os_bulkedit_selectchangehidden":
                     if (!NBrightBuyUtils.CheckRights()) break;
-                    strOut = productFunctions.ProductHidden(context);
+                    strOut = UpdateBoolean(context, "genxml/checkbox/chkishidden");
+                    strOut = ProductAdminList(context);
                     break;
             }
 
             return strOut;
 
         }
+
+        public string UpdateBoolean(HttpContext context,string xpath)
+        {
+            try
+            {
+                var ajaxInfo = NBrightBuyUtils.GetAjaxInfo(context);
+                var parentitemid = ajaxInfo.GetXmlPropertyInt("genxml/hidden/selecteditemid");
+                var editlang = ajaxInfo.GetXmlProperty("genxml/hidden/editlang");
+                if (editlang == "") editlang = Utils.GetCurrentCulture();
+
+                if (parentitemid > 0 && xpath != "")
+                {
+                    var prodData = ProductUtils.GetProductData(Convert.ToInt32(parentitemid), editlang, false, "PRD");
+                    if (prodData.DataRecord.GetXmlPropertyBool(xpath))
+                    {
+                        prodData.DataRecord.SetXmlProperty(xpath, "False");
+                    }
+                    else
+                    {
+                        prodData.DataRecord.SetXmlProperty(xpath, "True");
+                    }
+                    prodData.Save();
+                    // remove save GetData cache
+                    var strCacheKey = prodData.Info.ItemID.ToString("") + prodData.DataRecord.TypeCode + "LANG*" + "*" + editlang;
+                    Utils.RemoveCache(strCacheKey);
+                    DataCache.ClearCache();
+
+                    return "";
+                }
+                return "Invalid parentitemid";
+            }
+            catch (Exception e)
+            {
+                return e.ToString();
+            }
+        }
+
 
         public override void Validate()
         {
